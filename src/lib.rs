@@ -3,6 +3,9 @@ use nannou::{
     wgpu::{self, TextureViewDimension},
 };
 
+pub const FPS: u32 = 60;
+pub const N_SEC: u32 = 10;
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct Vertex {
@@ -14,6 +17,22 @@ struct Vertex {
 struct Uniforms {
     chroma: f32,
     sample_per_frame: i32,
+}
+
+pub struct Options {
+    pub chroma: f32,
+    pub sample_per_frame: i32,
+    pub shutter_angle: f64,
+}
+
+impl Default for Options {
+    fn default() -> Options {
+        Options {
+            chroma: 0.,
+            sample_per_frame: 1,
+            shutter_angle: 0.,
+        }
+    }
 }
 
 // The vertices that make up the rectangle to which the image will be drawn.
@@ -32,14 +51,15 @@ const VERTICES: [Vertex; 4] = [
     },
 ];
 
-pub const FPS: u32 = 60;
-pub const N_SEC: u32 = 10;
-
 pub trait Artwork {
     fn new(base: BaseModel) -> Self;
-    fn draw_at_time(&self, time: f64);
+    fn draw_at_time(&mut self, time: f64);
     fn get_model(&self) -> &BaseModel;
     fn get_mut_model(&mut self) -> &mut BaseModel;
+    fn get_options() -> Option<Options> {
+        None
+    }
+    fn key_pressed(&mut self, _app: &App, _key: Key) {}
 }
 
 pub struct BaseModel {
@@ -50,11 +70,12 @@ pub struct BaseModel {
     texture_accumulate_view: wgpu::TextureView,
     sampler: wgpu::Sampler,
     bind_group_layout: wgpu::BindGroupLayout,
-
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
+
     // The texture that we will draw to.
     pub texture: wgpu::Texture,
+    // The texture that will accumulate frames for the motion blur
     texture_accumulate: wgpu::Texture,
 
     // Create a `Draw` instance for drawing to our texture.
@@ -69,20 +90,20 @@ pub struct BaseModel {
     pub seed: i32,
 }
 
-pub fn make_recorder_app<T: 'static + Artwork>(
-) -> nannou::app::Builder<T> {
+pub fn make_recorder_app<T: 'static + Artwork>() -> nannou::app::Builder<T> {
     nannou::app(model).update(update).exit(exit)
 }
 
-
 fn model<T: 'static + Artwork>(app: &App) -> T {
-    T::new(make_base_model::<T>(app))
+    T::new(make_base_model::<T>(app, T::get_options()))
 }
 
-
-pub fn make_base_model<T: 'static + Artwork>(app: &App) -> BaseModel {
+pub fn make_base_model<T: 'static + Artwork>(
+    app: &App,
+    options: Option<Options>
+) -> BaseModel {
     // Lets write to a 4K UHD texture.
-    let texture_size = [1080, 1080];
+    let texture_size = [2160, 2160];
 
     // Create the window.
     let [win_w, win_h] = [texture_size[0] / 4, texture_size[1] / 4];
@@ -114,14 +135,9 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App) -> BaseModel {
 
     let texture_accumulate = wgpu::TextureBuilder::new()
         .size(texture_size)
-        // Our texture will be used as the RENDER_ATTACHMENT for our `Draw` render pass.
-        // It will also be SAMPLED by the `TextureCapturer` and `TextureResizer`.
         .usage(wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::RENDER_ATTACHMENT)
-        // Use nannou's default multisampling sample count.
         .sample_count(sample_count)
-        // Use a spacious 16-bit linear sRGBA format suitable for high quality drawing.
         .format(wgpu::TextureFormat::Rgba16Float)
-        // Build it!
         .build(device);
     let texture_view = texture.view().build();
     let texture_accumulate_view = texture_accumulate.view().build();
@@ -148,11 +164,10 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App) -> BaseModel {
     let bind_group_layout =
         create_bind_group_layout(device, texture_view.sample_type(), sampler_filtering);
 
-    let sample_per_frame = 5;
-    let shutter_angle = 0.3;
+    let options = options.unwrap_or_default();
     let uniforms = Uniforms {
-        chroma: 0.3,
-        sample_per_frame,
+        chroma: options.chroma,
+        sample_per_frame: options.sample_per_frame,
     };
 
     // Uniforms to be passed to the shaders
@@ -208,8 +223,8 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App) -> BaseModel {
     // Make sure the directory where we will save images to exists.
     std::fs::create_dir_all(&capture_directory(app)).unwrap();
     BaseModel {
-        sample_per_frame,
-        shutter_angle,
+        sample_per_frame: options.sample_per_frame,
+        shutter_angle: options.shutter_angle,
         uniforms: buffer,
         texture_view,
         texture_accumulate_view,
@@ -257,7 +272,6 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
 
         render_pass(device, &window, t, model, i == 0);
     }
-    // =================================================================================
 
     let ce_desc = wgpu::CommandEncoderDescriptor {
         label: Some("save texture renderer"),
@@ -269,10 +283,20 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
         &mut encoder,
         &model.get_model().texture_accumulate,
     );
-
     window.queue().submit(Some(encoder.finish()));
+
     if model.get_model().recording {
-        let path = capture_directory(app)
+        record_frame(app, elapsed_frames, model, snapshot)
+    }
+}
+
+fn record_frame<T: Artwork>(
+    app: &App,
+    elapsed_frames: u32,
+    model: &mut T,
+    snapshot: wgpu::TextueSnapshot
+) {
+            let path = capture_directory(app)
             .join(elapsed_frames.to_string())
             .with_extension("png");
         snapshot
@@ -288,7 +312,7 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
         if base_model.current_frame > FPS * N_SEC {
             base_model.recording = false;
         }
-    }
+
 }
 
 fn render_pass<T: Artwork>(
@@ -418,22 +442,25 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
         .join(app.exe_name().unwrap())
 }
 
-fn key_pressed<T: Artwork>(_app: &App, model: &mut T, key: Key) {
-    let model = model.get_mut_model();
+fn key_pressed<T: Artwork>(app: &App, model: &mut T, key: Key) {
+    let base_model = model.get_mut_model();
     match key {
         Key::S => {
-            model.seed = random();
+            base_model.seed = random();
         }
         Key::R => {
-            if model.recording {
-                model.recording = false;
+            if base_model.recording {
+                base_model.recording = false;
             } else {
-                model.recording = true;
-                model.current_frame = 0;
+                base_model.recording = true;
+                base_model.current_frame = 0;
             }
         }
         _ => {}
     }
+    // This is not inside the match to allow the model T to override or extend
+    // what happens when one of the pre-configured key is pressed.
+    model.key_pressed(app, key)
 }
 
 fn uniforms_as_bytes(uniforms: &Uniforms) -> &[u8] {

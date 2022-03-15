@@ -5,3 +5,6 @@ edition = "2021"
 
 [dependencies]
 nannou = "0.18"
+force_graph = "0.3.2"
+rand = "0.8.5"
+colourado = "0.2"

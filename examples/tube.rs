@@ -1,4 +1,4 @@
-use artworks::{make_recorder_app, Artwork, BaseModel};
+use artworks::{make_recorder_app, Artwork, BaseModel, Options};
 use nannou::{noise::NoiseFn, prelude::*};
 
 fn main() {
@@ -10,7 +10,7 @@ struct Tube {
 }
 
 impl Artwork for Tube {
-    fn draw_at_time(&self, time: f64) {
+    fn draw_at_time(&mut self, time: f64) {
         // First, reset the `draw` state.
         let draw = &self.base.draw;
         draw.reset();
@@ -30,16 +30,16 @@ impl Artwork for Tube {
         let amort = 1.;
 
         for j in -queue..=n_circles + queue {
-            let rat = (-queue as f32 * time as f32 + j as f32) / n_circles as f32;
-            let ns = nannou::noise::SuperSimplex::new();
-            let nsa = 1.
-                + ns.get([
-                    (2. * (spacen * rat + tau)).sin() as f64 / amort,
-                    (spacen * rat + tau).cos() as f64 / amort,
-                    seed,
-                ]);
-            let ws = 5. * nsa as f32 * w as f32 / n_points as f32;
             for i in 0..n_points {
+                let rat = (-queue as f32 * time as f32 + j as f32) / n_circles as f32;
+                let ns = nannou::noise::SuperSimplex::new();
+                let nsa = 1.
+                    + ns.get([
+                        (2. * (spacen * rat + tau)).sin() as f64 / amort,
+                        (spacen * rat + tau).cos() as f64 / amort,
+                        seed,
+                    ]);
+                let ws = 5. * nsa as f32 * w as f32 / n_points as f32;
                 let rato = i as f32 / n_points as f32;
                 let nsc = 1.
                     + ns.get([
@@ -78,5 +78,13 @@ impl Artwork for Tube {
     }
     fn new(base: BaseModel) -> Tube {
         Tube { base }
+    }
+
+    fn get_options() -> Option<Options> {
+        Some(Options {
+            chroma: 0.3,
+            sample_per_frame: 5,
+            shutter_angle: 0.3,
+        })
     }
 }
