@@ -5,6 +5,7 @@ use nannou::{
 
 pub const FPS: u32 = 60;
 pub const N_SEC: u32 = 10;
+const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -55,6 +56,9 @@ pub trait Artwork {
     fn new(base: BaseModel) -> Self;
     fn draw_at_time(&mut self, time: f64);
     fn get_model(&self) -> &BaseModel;
+    fn n_sec(&self) -> Option<u32> {
+        None
+    }
     fn get_mut_model(&mut self) -> &mut BaseModel;
     fn get_options() -> Option<Options> {
         None
@@ -72,6 +76,9 @@ pub struct BaseModel {
     bind_group_layout: wgpu::BindGroupLayout,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
+
+    depth_texture: wgpu::Texture,
+    depth_texture_view: wgpu::TextureView,
 
     // The texture that we will draw to.
     pub texture: wgpu::Texture,
@@ -98,10 +105,7 @@ fn model<T: 'static + Artwork>(app: &App) -> T {
     T::new(make_base_model::<T>(app, T::get_options()))
 }
 
-pub fn make_base_model<T: 'static + Artwork>(
-    app: &App,
-    options: Option<Options>
-) -> BaseModel {
+pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>) -> BaseModel {
     // Lets write to a 4K UHD texture.
     let texture_size = [2160, 2160];
 
@@ -141,6 +145,9 @@ pub fn make_base_model<T: 'static + Artwork>(
         .build(device);
     let texture_view = texture.view().build();
     let texture_accumulate_view = texture_accumulate.view().build();
+
+    let depth_texture = create_depth_texture(device, texture_size, DEPTH_FORMAT, sample_count);
+    let depth_texture_view = depth_texture.view().build();
 
     // Create our `Draw` instance and a renderer for it.
     let draw = nannou::Draw::new();
@@ -193,6 +200,7 @@ pub fn make_base_model<T: 'static + Artwork>(
         &vs_mod,
         &fs_mod,
         texture_accumulate.format(),
+        DEPTH_FORMAT,
         sample_count,
     );
 
@@ -241,13 +249,15 @@ pub fn make_base_model<T: 'static + Artwork>(
         current_frame: 0,
         recording: false,
         seed: random(),
+        depth_texture,
+        depth_texture_view,
     }
 }
 
 fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
     // Create a `Rect` for our texture to help with drawing.
     let [w, _h] = model.get_model().texture.size();
-
+    let n_sec = model.n_sec().unwrap_or(N_SEC);
     // Use the frame number to animate, ensuring we get a constant update time.
     // Render our drawing to the texture.
     let window = app.main_window();
@@ -257,7 +267,7 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
         model.get_model().current_frame
     } else {
         let pos = 2. * (4. * app.mouse.x + (w as f32)) / w as f32;
-        (pos * (FPS * N_SEC) as f32) as u32 % (FPS * N_SEC)
+        (pos * (FPS * n_sec) as f32) as u32 % (FPS * n_sec)
     };
     for i in 0..model.get_model().sample_per_frame {
         let t: f64 = map_range(
@@ -265,7 +275,7 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
                 + i as f64 * model.get_model().shutter_angle
                     / model.get_model().sample_per_frame as f64,
             0.,
-            (FPS * N_SEC) as f64,
+            (FPS * n_sec) as f64,
             0.,
             1.,
         );
@@ -294,25 +304,25 @@ fn record_frame<T: Artwork>(
     app: &App,
     elapsed_frames: u32,
     model: &mut T,
-    snapshot: wgpu::TextueSnapshot
+    snapshot: wgpu::TextueSnapshot,
 ) {
-            let path = capture_directory(app)
-            .join(elapsed_frames.to_string())
-            .with_extension("png");
-        snapshot
-            .read(move |result| {
-                let image = result.expect("failed to map texture memory").to_owned();
-                image
-                    .save(&path)
-                    .expect("failed to save texture to png image");
-            })
-            .unwrap();
-        let mut base_model = model.get_mut_model();
-        base_model.current_frame += 1;
-        if base_model.current_frame > FPS * N_SEC {
-            base_model.recording = false;
-        }
-
+    let path = capture_directory(app)
+        .join(elapsed_frames.to_string())
+        .with_extension("png");
+    snapshot
+        .read(move |result| {
+            let image = result.expect("failed to map texture memory").to_owned();
+            image
+                .save(&path)
+                .expect("failed to save texture to png image");
+        })
+        .unwrap();
+    let n_sec = model.n_sec().unwrap_or(N_SEC);
+    let mut base_model = model.get_mut_model();
+    base_model.current_frame += 1;
+    if base_model.current_frame > FPS * n_sec {
+        base_model.recording = false;
+    }
 }
 
 fn render_pass<T: Artwork>(
@@ -351,10 +361,12 @@ fn render_pass<T: Artwork>(
         let mut render_pass = if first {
             wgpu::RenderPassBuilder::new()
                 .color_attachment(tex_view, |color| color)
+                .depth_stencil_attachment(&base_model.depth_texture_view, |depth| depth)
                 .begin(&mut encoder)
         } else {
             wgpu::RenderPassBuilder::new()
                 .color_attachment(tex_view, |color| color.load_op(wgpu::LoadOp::Load))
+                .depth_stencil_attachment(&base_model.depth_texture_view, |depth| depth)
                 .begin(&mut encoder)
         };
         render_pass.set_bind_group(0, &bind_group, &[]);
@@ -374,6 +386,7 @@ fn create_render_pipeline(
     vs_mod: &wgpu::ShaderModule,
     fs_mod: &wgpu::ShaderModule,
     dst_format: wgpu::TextureFormat,
+    depth_format: wgpu::TextureFormat,
     sample_count: u32,
 ) -> wgpu::RenderPipeline {
     nannou::wgpu::RenderPipelineBuilder::from_layout(layout, vs_mod)
@@ -390,6 +403,7 @@ fn create_render_pipeline(
             operation: wgpu::BlendOperation::Add,
         })
         .add_vertex_buffer::<Vertex>(&wgpu::vertex_attr_array![0 => Float32x2])
+        .depth_format(depth_format)
         .sample_count(sample_count)
         .primitive_topology(wgpu::PrimitiveTopology::TriangleStrip)
         .build(device)
@@ -440,6 +454,20 @@ fn capture_directory(app: &App) -> std::path::PathBuf {
     app.project_path()
         .expect("could not locate project_path")
         .join(app.exe_name().unwrap())
+}
+
+fn create_depth_texture(
+    device: &wgpu::Device,
+    size: [u32; 2],
+    depth_format: wgpu::TextureFormat,
+    sample_count: u32,
+) -> wgpu::Texture {
+    wgpu::TextureBuilder::new()
+        .size(size)
+        .format(depth_format)
+        .usage(wgpu::TextureUsages::RENDER_ATTACHMENT)
+        .sample_count(sample_count)
+        .build(device)
 }
 
 fn key_pressed<T: Artwork>(app: &App, model: &mut T, key: Key) {
