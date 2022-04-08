@@ -5,7 +5,9 @@ edition = "2021"
 
 [dependencies]
 nannou = "0.18"
+
+[dev-dependencies]
 force_graph = "0.3.2"
 rand = "0.8.5"
 colourado = "0.2"
-rust_ca = {git = "https://github.com/hugcis/rust_ca", version = "0.1.0"}
+rust_ca = "0.2.0"

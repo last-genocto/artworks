@@ -18,7 +18,7 @@ struct Model {
     counter: u32,
 }
 
-const N_POINTS: usize = 32;
+const N_POINTS: usize = 50;
 
 impl Artwork for Model {
     fn draw_at_time(&mut self, time: f64) {
@@ -32,8 +32,8 @@ impl Artwork for Model {
         let _seed = (self.base.seed % 1000) as f64 / 1000.;
         let mut pos = vec![(0., 0.); N_POINTS.pow(2)];
         let mut draw_edges: Vec<(usize, usize, f32)> = vec![];
-        let step = 20;
-        let st_jmp = 10.;
+        let step = 4;
+        let st_jmp = 8.;
         let max_mass = 2.;
         let min_mass = 0.3;
 
@@ -107,6 +107,16 @@ impl Artwork for Model {
         // if self.base.recording {
         self.graph.update(0.022);
         // }
+        self.graph.visit_nodes_mut(|node| {
+            let idx = node.index().index();
+            let j = idx % N_POINTS;
+            let i = idx / N_POINTS;
+            node.data.x += 0.05 * (-node.x() + (w as f32) * (i as f32 / N_POINTS as f32 - 0.5));
+            node.data.y += 0.05 * (-node.y() + (h as f32) * (j as f32 / N_POINTS as f32 - 0.5));
+        })
+    }
+    fn n_sec(&self) -> Option<u32> {
+        Some(20)
     }
 
     fn get_model(&self) -> &BaseModel {
@@ -199,6 +209,11 @@ impl Artwork for Model {
         ca[o - N_POINTS] = 1;
         ca[o - 2 * N_POINTS - 1] = 1;
 
+        ca[o - 8] = 1;
+        ca[o - 9] = 1;
+        ca[o - 10] = 1;
+        ca[o - N_POINTS - 8] = 1;
+        ca[o - 2 * N_POINTS - 1 - 8] = 1;
         ca.random_init();
 
         Model {

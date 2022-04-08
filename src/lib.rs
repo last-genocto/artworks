@@ -24,6 +24,7 @@ pub struct Options {
     pub chroma: f32,
     pub sample_per_frame: i32,
     pub shutter_angle: f64,
+    pub extra_tex: Option<Vec<String>>,
 }
 
 impl Default for Options {
@@ -32,6 +33,7 @@ impl Default for Options {
             chroma: 0.,
             sample_per_frame: 1,
             shutter_angle: 0.,
+            extra_tex: None,
         }
     }
 }
@@ -66,6 +68,7 @@ pub trait Artwork {
     fn key_pressed(&mut self, _app: &App, _key: Key) {}
 }
 
+#[derive(Debug)]
 pub struct BaseModel {
     sample_per_frame: i32,
     shutter_angle: f64,
@@ -95,6 +98,8 @@ pub struct BaseModel {
     pub current_frame: u32,
     pub recording: bool,
     pub seed: i32,
+
+    pub extra_tex: Option<Vec<wgpu::Texture>>,
 }
 
 pub fn make_recorder_app<T: 'static + Artwork>() -> nannou::app::Builder<T> {
@@ -227,6 +232,16 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
         sample_count,
         dst_format,
     );
+    let extra_texture = if let Some(name) = options.extra_tex {
+        let assets = app.assets_path().unwrap();
+        Some(
+            name.iter()
+                .map(|n| wgpu::Texture::from_path(app, assets.join(n)).unwrap())
+                .collect(),
+        )
+    } else {
+        None
+    };
 
     // Make sure the directory where we will save images to exists.
     std::fs::create_dir_all(&capture_directory(app)).unwrap();
@@ -251,6 +266,7 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
         seed: random(),
         depth_texture,
         depth_texture_view,
+        extra_tex: extra_texture,
     }
 }
 
