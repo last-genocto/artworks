@@ -18,6 +18,7 @@ struct Vertex {
 struct Uniforms {
     chroma: f32,
     sample_per_frame: i32,
+    noise_amout: f32,
 }
 
 pub struct Options {
@@ -25,6 +26,7 @@ pub struct Options {
     pub sample_per_frame: i32,
     pub shutter_angle: f64,
     pub extra_tex: Option<Vec<String>>,
+    pub noise_amount: f32,
 }
 
 impl Default for Options {
@@ -34,6 +36,7 @@ impl Default for Options {
             sample_per_frame: 1,
             shutter_angle: 0.,
             extra_tex: None,
+            noise_amount: 0.,
         }
     }
 }
@@ -68,7 +71,6 @@ pub trait Artwork {
     fn key_pressed(&mut self, _app: &App, _key: Key) {}
 }
 
-#[derive(Debug)]
 pub struct BaseModel {
     sample_per_frame: i32,
     shutter_angle: f64,
@@ -80,7 +82,6 @@ pub struct BaseModel {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
 
-    depth_texture: wgpu::Texture,
     depth_texture_view: wgpu::TextureView,
 
     // The texture that we will draw to.
@@ -180,6 +181,7 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
     let uniforms = Uniforms {
         chroma: options.chroma,
         sample_per_frame: options.sample_per_frame,
+        noise_amout: options.noise_amount,
     };
 
     // Uniforms to be passed to the shaders
@@ -264,7 +266,6 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
         current_frame: 0,
         recording: false,
         seed: random(),
-        depth_texture,
         depth_texture_view,
         extra_tex: extra_texture,
     }

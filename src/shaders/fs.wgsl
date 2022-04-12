@@ -7,6 +7,7 @@ struct FragmentOutput {
 struct Data {
     chroma: f32;
     sample_per_frame: i32;
+    noise_amount: f32;
 };
 
 
@@ -62,7 +63,7 @@ fn main(
 
     // Grain
     // from https://www.shadertoy.com/view/3sGGRz
-    let mdf: f32 = 0.1 / f32(uniforms.sample_per_frame); // increase for noise amount
+    let mdf: f32 = uniforms.noise_amount / f32(uniforms.sample_per_frame); // increase for noise amount
     let noise: f32 = fract(sin(dot(tex_coords, vec2<f32>(12.9898,78.233) * 2.0)) * 43758.5453);
 
     color = color - noise * mdf;

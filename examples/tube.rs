@@ -47,7 +47,6 @@ impl Artwork for Tube {
                         (spacen * rato + tau).cos() as f64 / amort,
                         2. * seed,
                     ]);
-                let xpos = nsc as f32 * w as f32 / 20. + rat * w as f32 - w as f32 / 2.;
                 let nsb = 1.
                     + ns.get([
                         (1. * (spacen * rat + tau)).sin() as f64 / amort,
@@ -58,14 +57,16 @@ impl Artwork for Tube {
                             / amort,
                     ]);
                 let theta = tau + TAU * rato + 0.3 * TAU * (rat + nsb as f32 + 1.);
+                let xpos = nsc as f32 * w as f32 / 20. + rat * w as f32 - w as f32 / 2.;
                 let ypos = (theta).sin();
                 let zpos = (theta).cos();
+                let pos = Vec3::new(xpos, ws * ypos, ws * zpos);
                 let alpha = map_range(zpos, -1., 1., 0.2, 0.6);
-                // let weight = map_range(nsb, 0., 1., 1.5, 3.);
+
                 draw.ellipse()
                     .color(srgba(1., 1., 1., alpha))
                     .radius(5. + 10. * nsb as f32)
-                    .x_y_z(xpos, ws * ypos, ws * zpos);
+                    .xyz(pos);
             }
         }
     }
@@ -83,8 +84,10 @@ impl Artwork for Tube {
     fn get_options() -> Option<Options> {
         Some(Options {
             chroma: 0.3,
-            sample_per_frame: 5,
-            shutter_angle: 0.3,
+            sample_per_frame: 10,
+            shutter_angle: 0.5,
+            extra_tex: None,
+            noise_amount: 0.1
         })
     }
 }
