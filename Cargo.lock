@@ -71,6 +71,7 @@ version = "0.1.0"
 dependencies = [
  "colourado",
  "force_graph",
+ "kdtree",
  "nannou",
  "rand 0.8.5",
  "rust_ca",
@@ -997,6 +998,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a38fc24e30fd564ce974c02bf1d337caddff65be6cc4735a1f7eab22a7440f04"
 dependencies = [
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kdtree"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80ee359328fc9087e9e3fc0a4567c4dd27ec69a127d6a70e8d9dd22845b8b1a2"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]

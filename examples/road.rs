@@ -363,6 +363,7 @@ impl Artwork for Model {
                 "halo.png".to_string(),
                 "road.jpg".to_string(),
             ]),
+            noise_amout: 0.01
         })
     }
 }
