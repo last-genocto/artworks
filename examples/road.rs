@@ -481,7 +481,7 @@ impl Model {
             let inc = fmod((i as f32 - 0.2) / N_CIRCLES as f32 + time as f32, 1.);
 
             let x = 0.;
-            let y = -20.; //w as f32 / 3.;
+            let _y = -20.; //w as f32 / 3.;
             let y = map_range(inc, 1., 0., -25., -8. * (147.));
             let z = map_range(inc, 1., 0., near, 5. * ffar);
             let thet_min = PI / 3.7;

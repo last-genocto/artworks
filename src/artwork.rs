@@ -43,7 +43,7 @@ pub trait Artwork {
     /// You should implement this function to define a custom animation length.
     /// For example
     ///
-    /// ```
+    /// ```ignore
     /// fn n_sec(&self) -> Option<u32> {
     ///     Some(15)
     /// }
@@ -54,12 +54,13 @@ pub trait Artwork {
     /// You should implement this function if you want to set some of the
     /// parameters available in [Options]. For example:
     /// ```
+    /// # use artworks::Options;
     /// fn get_options() -> Option<Options> {
     ///     Some(Options {
     ///         chroma: 0.5,
     ///         sample_per_frame: 1,
     ///         shutter_angle: 0.1,
-    ///         extra_text: None,
+    ///         extra_tex: None,
     ///         noise_amount: 0.2
     ///     })
     /// }

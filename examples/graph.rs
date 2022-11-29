@@ -1,4 +1,4 @@
-use artworks::{make_recorder_app, Artwork, BaseModel, Options};
+use artworks::{make_recorder_app, Artwork, BaseModel};
 use nannou::prelude::*;
 use rand::Rng;
 
@@ -9,7 +9,7 @@ fn main() {
 struct Model {
     pub base: BaseModel,
     graph: force_graph::ForceGraph,
-    node_indices: Vec<force_graph::DefaultNodeIdx>
+    node_indices: Vec<force_graph::DefaultNodeIdx>,
 }
 
 const N_POINTS: usize = 128;
@@ -22,7 +22,7 @@ impl Artwork for Model {
         draw.reset();
         draw.background()
             .color(srgba(0.08627, 0.08627, 0.08627, 1.));
-        let [w, h] = self.base.texture.size();
+        let [w, _h] = self.base.texture.size();
         let _seed = (self.base.seed % 1000) as f64 / 1000.;
         // draw.ellipse()
         //     .color(srgba(1., 1., 1., 1.))
@@ -40,7 +40,7 @@ impl Artwork for Model {
                 .x_y(node.x(), node.y());
         });
         // if self.base.recording {
-            self.graph.update(0.005);
+        self.graph.update(0.005);
         // }
     }
 
@@ -78,6 +78,10 @@ impl Artwork for Model {
                 Default::default(),
             );
         }
-        Model { base, graph, node_indices: indices }
+        Model {
+            base,
+            graph,
+            node_indices: indices,
+        }
     }
 }

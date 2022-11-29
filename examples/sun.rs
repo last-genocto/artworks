@@ -9,7 +9,7 @@ struct Model {
 }
 
 impl Artwork for Model {
-    fn draw_at_time(&self, _time: f64) {
+    fn draw_at_time(&mut self, _time: f64) {
         // First, reset the `draw` state.
         let draw = &self.base.draw;
         draw.reset();

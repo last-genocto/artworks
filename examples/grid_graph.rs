@@ -1,6 +1,6 @@
-use artworks::{make_recorder_app, Artwork, BaseModel, Options};
+use artworks::{make_recorder_app, Artwork, BaseModel};
 use nannou::prelude::*;
-use rand::Rng;
+// use rand::Rng;
 use rust_ca::{
     automaton::{Automaton, AutomatonImpl},
     rule::Rule,
@@ -13,7 +13,7 @@ fn main() {
 struct Model {
     pub base: BaseModel,
     graph: force_graph::ForceGraph,
-    node_indices: Vec<force_graph::DefaultNodeIdx>,
+    // node_indices: Vec<force_graph::DefaultNodeIdx>,
     ca: Automaton,
     counter: u32,
 }
@@ -21,7 +21,7 @@ struct Model {
 const N_POINTS: usize = 50;
 
 impl Artwork for Model {
-    fn draw_at_time(&mut self, time: f64) {
+    fn draw_at_time(&mut self, _time: f64) {
         // First, reset the `draw` state.
         let draw = &self.base.draw.scale(0.7);
         draw.reset();
@@ -219,7 +219,7 @@ impl Artwork for Model {
         Model {
             base,
             graph,
-            node_indices: indices,
+            // node_indices: indices,
             ca,
             counter: 0,
         }

@@ -115,7 +115,7 @@ impl Artwork for Model {
         let draw = &self.base.draw;
         draw.reset();
         let [_w, _h] = self.base.texture.size();
-        let seed = (self.base.seed % 1000) as f64 / 1000.;
+        let _seed = (self.base.seed % 1000) as f64 / 1000.;
         draw.background()
             .color(srgba(0.08627, 0.08627, 0.08627, 1.));
 
@@ -133,7 +133,7 @@ impl Artwork for Model {
         &mut self.base
     }
     fn new(base: BaseModel) -> Model {
-        let [w, h] = base.texture.size();
+        let [w, _h] = base.texture.size();
         let palette = ColorPalette::new(4, PaletteType::Random, false);
         let mut vec = vec![];
         for _ in 0..N_LINES.pow(2) {
@@ -185,7 +185,7 @@ impl Artwork for Model {
             }
             Key::R => {
                 let mut vec = vec![];
-                let [w, h] = self.base.texture.size();
+                let [w, _h] = self.base.texture.size();
                 for _ in 0..N_LINES.pow(2) {
                     let x = random_pos(w);
                     let y = random_pos(w);

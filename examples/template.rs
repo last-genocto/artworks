@@ -1,5 +1,5 @@
-use nannou::prelude::*;
 use artworks::{make_recorder_app, Artwork, BaseModel};
+use nannou::prelude::*;
 
 fn main() {
     make_recorder_app::<Model>().run();
@@ -14,7 +14,10 @@ impl Artwork for Model {
         // First, reset the `draw` state.
         let draw = &self.base.draw;
         draw.reset();
+
+        // Get the width and height of the animation.
         let [_w, _h] = self.base.texture.size();
+        // Set the seed
         let _seed = (self.base.seed % 1000) as f64 / 1000.;
     }
 

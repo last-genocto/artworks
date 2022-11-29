@@ -34,7 +34,7 @@ impl Artwork for Model {
         draw.scale(cube_side)
             .mesh()
             .points(points)
-            .stroke_color(WHITE)
+            .color(WHITE)
             .z_radians(time as f32 * 0.33)
             .x_radians(time as f32 * 0.166)
             .y_radians(time as f32 * 0.25);

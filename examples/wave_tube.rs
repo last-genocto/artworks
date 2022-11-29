@@ -7,7 +7,7 @@ fn main() {
 
 struct Model {
     pub base: BaseModel,
-    pt_offsets: Vec<u32>,
+    // pt_offsets: Vec<u32>,
 }
 
 const C_DET: u32 = 30;
@@ -108,7 +108,10 @@ impl Artwork for Model {
     }
 
     fn new(base: BaseModel) -> Model {
-        let pt_offsets = (0..=C_DET).map(|_| random_range::<u32>(2, 8)).collect();
-        Model { base, pt_offsets }
+        // let pt_offsets = (0..=C_DET).map(|_| random_range::<u32>(2, 8)).collect();
+        Model {
+            base,
+            // pt_offsets
+        }
     }
 }

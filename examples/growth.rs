@@ -1,5 +1,5 @@
 use artworks::{make_recorder_app, Artwork, BaseModel};
-use kdtree::distance::squared_euclidean;
+// use kdtree::distance::squared_euclidean;
 use kdtree::KdTree;
 use nannou::prelude::*;
 
@@ -9,7 +9,7 @@ fn main() {
 
 struct Model {
     pub base: BaseModel,
-    kdtree: KdTree<f32, i32, [f32; 2]>
+    // kdtree: KdTree<f32, i32, [f32; 2]>,
 }
 
 impl Artwork for Model {
@@ -19,8 +19,6 @@ impl Artwork for Model {
         draw.reset();
         let [_w, _h] = self.base.texture.size();
         let _seed = (self.base.seed % 1000) as f64 / 1000.;
-
-        self.kdtree
     }
 
     fn get_model(&self) -> &BaseModel {
@@ -36,6 +34,9 @@ impl Artwork for Model {
             let coords = [theta.cos(), theta.sin()];
             kdtree.add(coords, 0).unwrap();
         }
-        Model { base, kdtree }
+        Model {
+            base,
+            // kdtree
+        }
     }
 }
