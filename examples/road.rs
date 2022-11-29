@@ -51,6 +51,7 @@ impl Artwork for Model {
         let trans = Mat4::perspective_rh(fov_y, aspect_ratio, near, far);
         let ffar = far * 0.8;
 
+        // Draw background
         let points = [
             (Point2::new(-1., -1.), (0., 0.)),
             (Point2::new(-1., 1.), (0., 1.)),
@@ -61,22 +62,6 @@ impl Artwork for Model {
             .scale(w as f32 / 2.)
             .polygon()
             .points_textured(&self.base.extra_tex.as_ref().unwrap()[0], points);
-        // Moon
-        // let x_m = w as f32 / 3.; // + (TAU * time as f32).cos() * w as f32 / 8.;
-        // let y_m = w as f32 / 10.; // + (TAU * time as f32).sin() * w as f32 / 3.;
-        // let r_m = w as f32 / 13.;
-        // draw.ellipse()
-        //     .color(srgba(0.9, 0.9, 0.9, 0.9))
-        //     .radius(r_m)
-        //     .x_y(x_m, y_m);
-        // for i in 0..20 {
-        //     let alph = 1. / 10.;
-        //     let r = map_range(i as f32, 0., 20., r_m, r_m + r_m / 10.);
-        //     draw.ellipse()
-        //         .color(srgba(0.9, 0.9, 0.9, alph))
-        //         .radius(r)
-        //         .x_y(x_m, y_m);
-        // }
 
         // Stars
         for (s, off, c) in self.star_pos.iter() {
@@ -135,25 +120,6 @@ impl Artwork for Model {
 
         // Gold circles
         self.draw_circles(draw, time, near, ffar, &trans);
-        // Road side lines
-        // let n_tiles = N_LINES * 10;
-        // for p in 0..=n_tiles {
-        //     let depth = map_range(p as f32 + time as f32, 0., n_tiles as f32, near + 0.01, 70. * far);
-        //     let depth2 = map_range(p as f32 + 1., 0., n_tiles as f32, near + 0.01, 70. * far);
-        //     let x = 1.56 * w as f32;
-        //     let y = h as f32;
-        //     let quad: Vec<Vec2> = vec![
-        //         trans.project_point3(Vec3::new(-x, y, depth)),
-        //         trans.project_point3(Vec3::new(-x, y, depth2)),
-        //         trans.project_point3(Vec3::new(x, y, depth2)),
-        //         trans.project_point3(Vec3::new(x, y, depth)),
-        //     ].iter().map(|x| x.truncate()).collect();
-        //     let alpha = map_range(p as f32, 0., n_tiles as f32, 1., 0.);
-        //     let col: Srgba = srgba(49. / 255., 12. / 255., 50. / 255., alpha);
-        //     draw.line().color(WHITE).points(quad[0], quad[1]);
-        //     draw.line().color(WHITE).points(quad[3], quad[2]);
-        //     // draw.polygon().color(col).points(quad);
-        // }
 
         // Road lines
         let x = 1.52 * w as f32;
@@ -226,8 +192,16 @@ impl Artwork for Model {
             //    _ => srgba(160./255., 52./255., 95./255., alpha),
             // };
             let wg = map_range(inc, 1., 0., 20., 0.);
-            draw.line().caps_round().weight(wg).color(col).points(quad[0], quad[3]);
-            draw.line().caps_round().weight(wg).color(col).points(quad[1], quad[2]);
+            draw.line()
+                .caps_round()
+                .weight(wg)
+                .color(col)
+                .points(quad[0], quad[3]);
+            draw.line()
+                .caps_round()
+                .weight(wg)
+                .color(col)
+                .points(quad[1], quad[2]);
         }
         make_text(draw, w as f32, h as f32);
     }
@@ -363,7 +337,7 @@ impl Artwork for Model {
                 "halo.png".to_string(),
                 "road.jpg".to_string(),
             ]),
-            noise_amout: 0.01
+            noise_amount: 0.01,
         })
     }
 }
@@ -455,7 +429,7 @@ impl Model {
             Vec2::new(-w / 2., -(h / 2.)),
             Vec2::new(w / 2., -(h / 2.)),
             Vec2::new(w / 2., -baseline_y),
-            Vec2::new(-w / 2.,-baseline_y),
+            Vec2::new(-w / 2., -baseline_y),
         ]);
     }
 

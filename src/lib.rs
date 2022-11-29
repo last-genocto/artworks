@@ -1,18 +1,40 @@
+//! This is a library for easily generating animations in nannou, with an API
+//! somewhat similar to Processing.
+
+/// To create an animation, you need to create a struct that implements the
+/// trait [`Artwork`]. This trait defines the
+/// [`draw_at_time`](Artwork::draw_at_time()) method for drawing the content of
+/// your animation at a particular `time`, where time is a `f64` value between 0
+/// and 1.
+///
+/// The easiest way to start an animation is to copy the file `template.rs`
+/// located in the `examples/` folder for this crate.
+///
+/// By default, you animation is not being recorded, but you can start a
+/// recording by pressing R.
+pub mod artwork;
+
+pub use crate::artwork::{Artwork, Options};
 use nannou::{
     prelude::*,
     wgpu::{self, TextureViewDimension},
 };
 
+/// Frame per second for the animations.
 pub const FPS: u32 = 60;
+/// Default length of an animation.
 pub const N_SEC: u32 = 10;
+/// The wgpu default texture format.
 const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
+/// This structure represents a vertex for the vertex shader.
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct Vertex {
     position: [f32; 2],
 }
 
+/// The uniform values used in the fragment shader.
 #[repr(C)]
 #[derive(Clone, Copy)]
 struct Uniforms {
@@ -21,27 +43,7 @@ struct Uniforms {
     noise_amout: f32,
 }
 
-pub struct Options {
-    pub chroma: f32,
-    pub sample_per_frame: i32,
-    pub shutter_angle: f64,
-    pub extra_tex: Option<Vec<String>>,
-    pub noise_amount: f32,
-}
-
-impl Default for Options {
-    fn default() -> Options {
-        Options {
-            chroma: 0.,
-            sample_per_frame: 1,
-            shutter_angle: 0.,
-            extra_tex: None,
-            noise_amount: 0.,
-        }
-    }
-}
-
-// The vertices that make up the rectangle to which the image will be drawn.
+/// The vertices that make up the rectangle to which the image will be drawn.
 const VERTICES: [Vertex; 4] = [
     Vertex {
         position: [-1.0, 1.0],
@@ -57,20 +59,7 @@ const VERTICES: [Vertex; 4] = [
     },
 ];
 
-pub trait Artwork {
-    fn new(base: BaseModel) -> Self;
-    fn draw_at_time(&mut self, time: f64);
-    fn get_model(&self) -> &BaseModel;
-    fn n_sec(&self) -> Option<u32> {
-        None
-    }
-    fn get_mut_model(&mut self) -> &mut BaseModel;
-    fn get_options() -> Option<Options> {
-        None
-    }
-    fn key_pressed(&mut self, _app: &App, _key: Key) {}
-}
-
+/// The model base that all animations should use.
 pub struct BaseModel {
     sample_per_frame: i32,
     shutter_angle: f64,
@@ -84,23 +73,30 @@ pub struct BaseModel {
 
     depth_texture_view: wgpu::TextureView,
 
-    // The texture that we will draw to.
+    /// The texture that we will draw to.
     pub texture: wgpu::Texture,
-    // The texture that will accumulate frames for the motion blur
-    texture_accumulate: wgpu::Texture,
-
-    // Create a `Draw` instance for drawing to our texture.
+    /// Create a `Draw` instance for drawing to our texture.
     pub draw: nannou::Draw,
-    // The type used to render the `Draw` vertices to our texture.
-    renderer: nannou::draw::Renderer,
-    // The type used to capture the texture.
-    texture_capturer: wgpu::TextureCapturer,
-    texture_reshaper: wgpu::TextureReshaper,
-    pub current_frame: u32,
-    pub recording: bool,
+
+    /// Holds the number of the frame being run. This allows resetting the
+    /// animation when starting a recording.
+    current_frame: u32,
+    recording: bool,
     pub seed: i32,
 
+    /// Holds extra textures that can be used in the animation.
     pub extra_tex: Option<Vec<wgpu::Texture>>,
+
+    /// The texture that will accumulate frames for the motion blur
+    texture_accumulate: wgpu::Texture,
+
+    /// The type used to render the `Draw` vertices to our texture.
+    renderer: nannou::draw::Renderer,
+    /// The type used to capture the texture.
+    texture_capturer: wgpu::TextureCapturer,
+    /// The type used to reshape the texture. We draw the animation in 4K but
+    /// only display a window of 540 time 540 pixels.
+    texture_reshaper: wgpu::TextureReshaper,
 }
 
 pub fn make_recorder_app<T: 'static + Artwork>() -> nannou::app::Builder<T> {
@@ -161,7 +157,8 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
     let renderer =
         nannou::draw::RendererBuilder::new().build_from_texture_descriptor(device, descriptor);
 
-    // Build shader modules
+    // Build shader modules. The vertex shader only displays a square the size
+    // of the window.
     let vs_desc = wgpu::include_wgsl!("shaders/vs.wgsl");
     let fs_desc = wgpu::include_wgsl!("shaders/fs.wgsl");
     let vs_mod = device.create_shader_module(&vs_desc);
