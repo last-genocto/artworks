@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 nannou = "0.18"
+ringbuf = "0.2.3"
 
 [dev-dependencies]
 force_graph = "0.3.2"
@@ -12,3 +13,5 @@ rand = "0.8.5"
 colourado = "0.2"
 rust_ca = "0.2.0"
 kdtree = "0.6"
+audrey = "0.3"
+nannou_audio = "0.18"

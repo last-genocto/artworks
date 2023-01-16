@@ -2,7 +2,6 @@ struct FragmentOutput {
     [[location(0)]] out_color: vec4<f32>;
 };
 
-
 [[block]]
 struct Data {
     chroma: f32;
@@ -22,11 +21,12 @@ var<uniform> uniforms: Data;
 fn main(
     [[location(0)]] tex_coords: vec2<f32>,
 ) -> FragmentOutput {
-    // Get the integer tex coordinates.
+
     let tex_size: vec2<i32> = textureDimensions(tex);
     let tex_x: f32 = f32(tex_size.x) * tex_coords.x;
     let tex_y: f32 = f32(tex_size.y) * tex_coords.y;;
     let itex_coords: vec2<f32> = vec2<f32>(tex_x, tex_y);
+
 
     let pr: vec2<i32> = vec2<i32>(i32(itex_coords[0]), i32(itex_coords[1]));
 
@@ -67,5 +67,6 @@ fn main(
     let noise: f32 = fract(sin(dot(tex_coords, vec2<f32>(12.9898,78.233) * 2.0)) * 43758.5453);
 
     color = color - noise * mdf;
+
     return FragmentOutput(color);
 }

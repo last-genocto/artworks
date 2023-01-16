@@ -87,7 +87,7 @@ impl Artwork for Tube {
             sample_per_frame: 10,
             shutter_angle: 0.5,
             extra_tex: None,
-            noise_amount: 0.1
+            noise_amount: 0.1,
         })
     }
 }

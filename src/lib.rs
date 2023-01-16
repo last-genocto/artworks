@@ -13,6 +13,7 @@
 /// By default, you animation is not being recorded, but you can start a
 /// recording by pressing R.
 pub mod artwork;
+pub mod projection_mapping;
 
 pub use crate::artwork::{Artwork, Options};
 use nannou::{
@@ -283,7 +284,8 @@ fn update<T: Artwork>(app: &App, model: &mut T, _update: Update) {
         let pos = 2. * (4. * app.mouse.x + (w as f32)) / w as f32;
         (pos * (FPS * n_sec) as f32) as u32 % (FPS * n_sec)
     };
-    for i in 0..model.get_model().sample_per_frame {
+    let n_sample_per_frame = model.get_model().sample_per_frame;
+    for i in 0..n_sample_per_frame {
         let t: f64 = map_range(
             elapsed_frames as f64
                 + i as f64 * model.get_model().shutter_angle
@@ -505,7 +507,10 @@ fn key_pressed<T: Artwork>(app: &App, model: &mut T, key: Key) {
     model.key_pressed(app, key)
 }
 
-fn uniforms_as_bytes(uniforms: &Uniforms) -> &[u8] {
+fn uniforms_as_bytes<T>(uniforms: &T) -> &[u8]
+where
+    T: std::marker::Copy,
+{
     unsafe { wgpu::bytes::from(uniforms) }
 }
 

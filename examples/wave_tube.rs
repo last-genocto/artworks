@@ -1,4 +1,4 @@
-use artworks::{make_recorder_app, Artwork, BaseModel};
+use artworks::{make_recorder_app, Artwork, BaseModel, Options};
 use nannou::{noise::NoiseFn, prelude::*};
 
 fn main() {
@@ -25,7 +25,7 @@ impl Artwork for Model {
         let seed = (self.base.seed % 1000) as f64 / 1000.;
         let amp = 5;
         let div = 20.;
-        let t_mut = 50;
+        let t_mut = 30;
         let noise = nannou::noise::OpenSimplex::new();
         for k in -amp - 1..=amp + 1 {
             let ratk = (-3. * time as f32 + k as f32) / amp as f32;
@@ -56,8 +56,6 @@ impl Artwork for Model {
                 let var = if k % 2 == 0 { v.sin() } else { (v - PI).sin() };
                 let r = (base + add * var) * (w as f32 / div);
                 let grey = map_range(1., 0., 1., 0.1, 1.);
-                // draw.path().fill().color(bg)
-                // .points(points);
 
                 let points = (0..=C_DET).map(|d| {
                     let msk = 200.;
@@ -107,11 +105,24 @@ impl Artwork for Model {
         &mut self.base
     }
 
+    fn get_options() -> Option<Options> {
+        Some(Options {
+            chroma: 0.4,
+            sample_per_frame: 5,
+            shutter_angle: 0.8,
+            extra_tex: None,
+            noise_amount: 0.0,
+        })
+    }
     fn new(base: BaseModel) -> Model {
         // let pt_offsets = (0..=C_DET).map(|_| random_range::<u32>(2, 8)).collect();
         Model {
             base,
             // pt_offsets
         }
+    }
+
+    fn n_sec(&self) -> Option<u32> {
+        Some(5)
     }
 }
