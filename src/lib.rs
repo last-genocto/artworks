@@ -14,6 +14,7 @@
 /// recording by pressing R.
 pub mod artwork;
 pub mod projection_mapping;
+pub mod utils;
 
 pub use crate::artwork::{Artwork, Options};
 use nannou::{
