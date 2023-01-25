@@ -102,6 +102,7 @@ version = "0.1.0"
 dependencies = [
  "audrey",
  "colourado",
+ "contour",
  "force_graph",
  "kdtree",
  "nannou",
@@ -437,6 +438,19 @@ checksum = "35ed6e9d84f0b51a7f52daf1c7d71dd136fd7a3f41a8462b8cdb8c78d920fad4"
 dependencies = [
  "bytes",
  "memchr",
+]
+
+[[package]]
+name = "contour"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8e05707ba96d7d9102d2161a750213e8d46bf0610061923d43d72cd1ab50c70c"
+dependencies = [
+ "geo-types",
+ "lazy_static",
+ "rustc-hash",
+ "serde_json",
+ "slab",
 ]
 
 [[package]]
@@ -1025,6 +1039,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c31b6d751ae2c7f11320402d34e41349dd1016f8d5d45e48c4312bc8625af50c"
 dependencies = [
  "byteorder",
+]
+
+[[package]]
+name = "geo-types"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e26879b63ac36ca5492918dc16f8c1e604b0f70f884fffbd3533f89953ab1991"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
