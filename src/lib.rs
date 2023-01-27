@@ -245,7 +245,7 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
     };
 
     // Make sure the directory where we will save images to exists.
-    std::fs::create_dir_all(&capture_directory(app)).unwrap();
+    std::fs::create_dir_all(capture_directory(app)).unwrap();
     BaseModel {
         sample_per_frame: options.sample_per_frame,
         shutter_angle: options.shutter_angle,
@@ -450,7 +450,7 @@ fn view<T: Artwork>(_app: &App, model: &T, frame: Frame) {
     model
         .get_model()
         .texture_reshaper
-        .encode_render_pass(frame.texture_view(), &mut *encoder);
+        .encode_render_pass(frame.texture_view(), &mut encoder);
 }
 
 // Wait for capture to finish.
