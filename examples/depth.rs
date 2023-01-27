@@ -20,7 +20,7 @@ impl Artwork for Model {
 
         let _seed = (self.base.seed % 1000) as f64 / 1000.;
         draw.x_radians(time as f32 * PI / 3.)
-        .rect()
+            .rect()
             .color(WHITE)
             .x_y_z(0., 0., 400. * (8. * PI * time as f32).sin())
             .w_h(100. + 10. * time as f32, 100. + 10. * time as f32);

@@ -61,11 +61,14 @@ impl Artwork for Model {
             let y = y + (w as f32 / 20.) * y_noise as f32;
             let c = clamp(
                 ease_out(
-                map_range(Vec2::new(x, y).length(), 0., w as f32 / 2., 1., 0.),
-                0.,
+                    map_range(Vec2::new(x, y).length(), 0., w as f32 / 2., 1., 0.),
+                    0.,
+                    1.,
+                    1.,
+                ),
+                0.08627,
                 1.,
-                1.,
-            ), 0.08627, 1.);
+            );
 
             let color = srgba(c, c, c, 1.);
             if Vec2::new(x, y).length() < w as f32 / 1.3 {
