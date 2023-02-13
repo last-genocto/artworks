@@ -4,6 +4,7 @@ use nannou::{
     rand::random_f32,
 };
 pub mod colorbrewer;
+pub mod poline;
 
 const GOLDEN_RATIO: f64 = 0.618_033_988_749_895;
 
