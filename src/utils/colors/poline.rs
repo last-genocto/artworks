@@ -188,52 +188,132 @@ fn vectors_on_line(
     points
 }
 
+fn pos_function_to_fxfyfz(
+    pos_functions: PosFunctions,
+) -> (&PositionFunction, &PositionFunction, &PositionFunction) {
+    match pos_functions {
+        PosFunctions::LinearPosition => (&linear_position, &linear_position, &linear_position),
+        PosFunctions::ExponentialPosition => (
+            &exponential_position,
+            &exponential_position,
+            &exponential_position,
+        ),
+        PosFunctions::Custom { fx, fy, fz } => (fx, fy, fz),
+        PosFunctions::QuadraticPosition => (
+            &quadratic_position,
+            &quadratic_position,
+            &quadratic_position,
+        ),
+        PosFunctions::CubicPosition => (&cubic_position, &cubic_position, &cubic_position),
+        PosFunctions::QuarticPosition => (&quartic_position, &quartic_position, &quartic_position),
+        PosFunctions::SinusoidalPosition => (
+            &sinusoidal_position,
+            &sinusoidal_position,
+            &sinusoidal_position,
+        ),
+        PosFunctions::AsinusoidalPosition => (
+            &asinusoidal_position,
+            &asinusoidal_position,
+            &asinusoidal_position,
+        ),
+        PosFunctions::ArcPosition => (&arc_position, &arc_position, &arc_position),
+        PosFunctions::SmoothStepPosition => (
+            &smooth_step_position,
+            &smooth_step_position,
+            &smooth_step_position,
+        ),
+    }
+}
+
 pub fn get_random_color_palette(length: usize, pos_functions: PosFunctions) -> Vec<Hsla> {
     let (c1, c2) = random_hsl_pair(
         360. * random_f32(),
         (random_f32(), random_f32()),
         (0.75 + random_f32() * 0.2, 0.3 + random_f32() * 0.2),
     );
-    let (fx, fy, fz): (&PositionFunction, &PositionFunction, &PositionFunction) =
-        match pos_functions {
-            PosFunctions::LinearPosition => (&linear_position, &linear_position, &linear_position),
-            PosFunctions::ExponentialPosition => (
-                &exponential_position,
-                &exponential_position,
-                &exponential_position,
-            ),
-            PosFunctions::Custom { fx, fy, fz } => (fx, fy, fz),
-            PosFunctions::QuadraticPosition => (
-                &quadratic_position,
-                &quadratic_position,
-                &quadratic_position,
-            ),
-            PosFunctions::CubicPosition => (&cubic_position, &cubic_position, &cubic_position),
-            PosFunctions::QuarticPosition => {
-                (&quartic_position, &quartic_position, &quartic_position)
-            }
-            PosFunctions::SinusoidalPosition => (
-                &sinusoidal_position,
-                &sinusoidal_position,
-                &sinusoidal_position,
-            ),
-            PosFunctions::AsinusoidalPosition => (
-                &asinusoidal_position,
-                &asinusoidal_position,
-                &asinusoidal_position,
-            ),
-            PosFunctions::ArcPosition => (&arc_position, &arc_position, &arc_position),
-            PosFunctions::SmoothStepPosition => (
-                &smooth_step_position,
-                &smooth_step_position,
-                &smooth_step_position,
-            ),
-        };
-    vectors_on_line(c1, c2, length as u32, false, fx, fy, fz)
-        .into_iter()
-        .map(point_to_hsl)
-        .map(|hsl| hsla(hsl.x / 360., hsl.y, hsl.z, 1.0))
-        .collect()
+    let (fx, fy, fz) = pos_function_to_fxfyfz(pos_functions);
+
+    vectors_on_line(
+        hsl_to_point(c1),
+        hsl_to_point(c2),
+        length as u32,
+        false,
+        fx,
+        fy,
+        fz,
+    )
+    .into_iter()
+    .map(point_to_hsl)
+    .map(|hsl| hsla(hsl.x / 360., hsl.y, hsl.z, 1.0))
+    .collect()
 }
 
-mod tests {}
+pub fn get_random_color_palette3(length: usize, pos_functions: PosFunctions) -> Vec<Hsla> {
+    let (c1, c2, c3) = random_hsl_triple(
+        360. * random_f32(),
+        (random_f32(), random_f32(), random_f32()),
+        (
+            0.75 + random_f32() * 0.2,
+            0.3 + random_f32() * 0.2,
+            0.75 + random_f32() * 0.2,
+        ),
+    );
+    let (fx, fy, fz) = pos_function_to_fxfyfz(pos_functions);
+
+    vectors_on_line(
+        hsl_to_point(c1),
+        hsl_to_point(c2),
+        (length / 2) as u32,
+        false,
+        fx,
+        fy,
+        fz,
+    )
+    .into_iter()
+    .chain(vectors_on_line(
+        hsl_to_point(c2),
+        hsl_to_point(c3),
+        (length - (length / 2)) as u32,
+        false,
+        fx,
+        fy,
+        fz,
+    ))
+    .map(point_to_hsl)
+    .map(|hsl| hsla(hsl.x / 360., hsl.y, hsl.z, 1.0))
+    .collect()
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generate_pair_of_hsl() {
+        let base_hue = 128.;
+        let sat = (0.5, 0.43);
+        let brightness = (0.75, 0.32);
+        let (c1, c2) = random_hsl_pair(128., sat, brightness);
+        assert_eq!(c1.x, base_hue);
+        assert_ne!(c2.x, c1.x);
+        assert_eq!(c1.y, sat.0);
+        assert_eq!(c2.y, sat.1);
+        assert_eq!(c1.z, brightness.0);
+        assert_eq!(c2.z, brightness.1);
+    }
+    #[test]
+    fn generate_triple_of_hsl() {
+        let base_hue = 128.;
+        let sat = (0.5, 0.43, 0.8);
+        let brightness = (0.75, 0.32, 0.4);
+        let (c1, c2, c3) = random_hsl_triple(128., sat, brightness);
+        assert_eq!(c1.x, base_hue);
+        assert_ne!(c2.x, c1.x);
+        assert_ne!(c3.x, c1.x);
+        assert_eq!(c1.y, sat.0);
+        assert_eq!(c2.y, sat.1);
+        assert_eq!(c3.y, sat.2);
+        assert_eq!(c1.z, brightness.0);
+        assert_eq!(c2.z, brightness.1);
+        assert_eq!(c3.z, brightness.2);
+    }
+}
