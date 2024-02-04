@@ -335,7 +335,7 @@ fn record_frame<T: Artwork>(
         })
         .unwrap();
     let n_sec = model.n_sec().unwrap_or(N_SEC);
-    let mut base_model = model.get_mut_model();
+    let base_model = model.get_mut_model();
     base_model.current_frame += 1;
     if base_model.current_frame > FPS * n_sec {
         base_model.recording = false;
