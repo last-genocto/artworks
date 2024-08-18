@@ -17,10 +17,7 @@ pub mod projection_mapping;
 pub mod utils;
 
 pub use crate::artwork::{Artwork, Options};
-use nannou::{
-    prelude::*,
-    wgpu::{self, TextureViewDimension},
-};
+use nannou::{prelude::*, wgpu::TextureViewDimension};
 
 /// Frame per second for the animations.
 pub const FPS: u32 = 60;
@@ -163,8 +160,8 @@ pub fn make_base_model<T: 'static + Artwork>(app: &App, options: Option<Options>
     // of the window.
     let vs_desc = wgpu::include_wgsl!("shaders/vs.wgsl");
     let fs_desc = wgpu::include_wgsl!("shaders/fs.wgsl");
-    let vs_mod = device.create_shader_module(&vs_desc);
-    let fs_mod = device.create_shader_module(&fs_desc);
+    let vs_mod = device.create_shader_module(vs_desc);
+    let fs_mod = device.create_shader_module(fs_desc);
 
     // Build the sampler
     let sampler_desc = wgpu::SamplerBuilder::new()
@@ -321,7 +318,7 @@ fn record_frame<T: Artwork>(
     app: &App,
     elapsed_frames: u32,
     model: &mut T,
-    snapshot: wgpu::TextueSnapshot,
+    snapshot: wgpu::TextureSnapshot,
 ) {
     let path = capture_directory(app)
         .join(elapsed_frames.to_string())

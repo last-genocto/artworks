@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-nannou = "0.18"
+nannou = "0.19"
 ringbuf = "0.2.3"
 
 [dev-dependencies]
@@ -14,5 +14,5 @@ colourado = "0.2"
 rust_ca = "0.2.0"
 kdtree = "0.6"
 audrey = "0.3"
-nannou_audio = "0.18"
+nannou_audio = "0.19"
 contour = "0.7.0"

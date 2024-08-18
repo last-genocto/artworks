@@ -1,28 +1,27 @@
 struct FragmentOutput {
-    [[location(0)]] out_color: vec4<f32>;
+    @location(0) out_color: vec4<f32>,
 };
 
-[[block]]
 struct Data {
-    chroma: f32;
-    sample_per_frame: i32;
-    noise_amount: f32;
+    chroma: f32,
+    sample_per_frame: i32,
+    noise_amount: f32,
 };
 
 
-[[group(0), binding(0)]]
+@group(0) @binding(0)
 var tex: texture_multisampled_2d<f32>;
-[[group(0), binding(1)]]
+@group(0) @binding(1)
 var tex_sampler: sampler;
-[[group(0), binding(2)]]
+@group(0) @binding(2)
 var<uniform> uniforms: Data;
 
-[[stage(fragment)]]
+@fragment
 fn main(
-    [[location(0)]] tex_coords: vec2<f32>,
+    @location(0) tex_coords: vec2<f32>,
 ) -> FragmentOutput {
 
-    let tex_size: vec2<i32> = textureDimensions(tex);
+    let tex_size: vec2<u32> = textureDimensions(tex);
     let tex_x: f32 = f32(tex_size.x) * tex_coords.x;
     let tex_y: f32 = f32(tex_size.y) * tex_coords.y;;
     let itex_coords: vec2<f32> = vec2<f32>(tex_x, tex_y);
